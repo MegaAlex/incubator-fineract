@@ -16,14 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.data;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import org.joda.time.DateTime;
 
-public interface PlatformEmailService {
+public class AccessTokenData {
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+    private final String token;
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    private final DateTime validFrom;
+    private final DateTime validTo;
+
+    public AccessTokenData(String token, DateTime validFrom, DateTime validTo) {
+        this.token = token;
+        this.validFrom = validFrom;
+        this.validTo = validTo;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public DateTime getValidFrom() {
+        return validFrom;
+    }
+
+    public DateTime getValidTo() {
+        return validTo;
+    }
 }

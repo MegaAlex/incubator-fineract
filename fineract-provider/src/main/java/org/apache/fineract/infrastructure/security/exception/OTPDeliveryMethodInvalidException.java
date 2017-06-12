@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.exception;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import org.apache.fineract.infrastructure.core.exception.AbstractPlatformDomainRuleException;
 
-public interface PlatformEmailService {
+public class OTPDeliveryMethodInvalidException extends AbstractPlatformDomainRuleException {
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
-
-    void sendDefinedEmail(EmailDetail emailDetails);
+    public OTPDeliveryMethodInvalidException() {
+        super("error.msg.twofactor.otp.delivery.invalid", "The requested OTP delivery method " +
+                "is not supported or not currently unavailable.");
+    }
 }

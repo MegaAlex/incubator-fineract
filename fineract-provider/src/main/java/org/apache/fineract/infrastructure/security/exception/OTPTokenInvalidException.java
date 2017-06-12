@@ -16,14 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.exception;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import org.apache.fineract.infrastructure.core.exception.AbstractPlatformDomainRuleException;
 
-public interface PlatformEmailService {
+public class OTPTokenInvalidException extends AbstractPlatformDomainRuleException {
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
-
-    void sendDefinedEmail(EmailDetail emailDetails);
+    public OTPTokenInvalidException() {
+        super("error.msg.twofactor.otp.token.invalid", "The provided one time token is invalid");
+    }
 }
