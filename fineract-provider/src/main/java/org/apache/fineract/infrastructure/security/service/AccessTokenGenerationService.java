@@ -16,14 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.service;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+public interface AccessTokenGenerationService {
 
-public interface PlatformEmailService {
-
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
-
-    void sendDefinedEmail(EmailDetail emailDetails);
+    String generateRandomToken();
 }

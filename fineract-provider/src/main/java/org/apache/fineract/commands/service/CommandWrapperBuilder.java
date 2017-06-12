@@ -2904,7 +2904,7 @@ public class CommandWrapperBuilder {
         this.href = "/smscampaigns/"+resourceId;
         return this;
     }
-    
+
     public CommandWrapperBuilder holdAmount(final Long accountId) {
         this.actionName = "HOLDAMOUNT";
         this.entityName = "SAVINGSACCOUNT";
@@ -2975,6 +2975,13 @@ public class CommandWrapperBuilder {
         this.savingsId = accountId;
         this.entityId = null;
         this.href = "/savingsaccounts/" + accountId + "?command=unblock";
+        return this;
+    }
+
+    public CommandWrapperBuilder updateTwoFactorConfiguration() {
+        this.actionName = "UPDATE";
+        this.entityName = "TWOFACTOR_CONFIGURATION";
+        this.href = "/twofactor/configure";
         return this;
     }
 }

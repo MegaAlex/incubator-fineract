@@ -16,14 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.constants;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+public class TwoFactorConstants {
 
-public interface PlatformEmailService {
+    public static final String SMS_DELIVERY_METHOD_NAME = "sms";
+    public static final String EMAIL_DELIVERY_METHOD_NAME = "email";
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+    public static final String BYPASS_TWO_FACTOR_PERMISSION = "BYPASS_TWOFACTOR";
 
-    void sendDefinedEmail(EmailDetail emailDetails);
 }

@@ -16,14 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.service;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import java.util.List;
 
-public interface PlatformEmailService {
+import org.apache.fineract.infrastructure.security.data.OTPDeliveryMethod;
+import org.apache.fineract.infrastructure.security.data.OTPRequest;
+import org.apache.fineract.infrastructure.security.domain.TFAccessToken;
+import org.apache.fineract.useradministration.domain.AppUser;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+public interface TwoFactorService {
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    List<OTPDeliveryMethod> getDeliveryMethodsForUser(AppUser user);
+
+    OTPRequest createNewOTPToken(AppUser user, String deliveryMethodName, boolean extendedAccessToken);
+
+    TFAccessToken createAccessTokenFromOTP(AppUser user, String otpToken);
+
+    void validateTwoFactorAccessToken(AppUser user, String token);
+
+    TFAccessToken fetchAccessTokenForUser(AppUser user, String token);
+
 }

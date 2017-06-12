@@ -16,14 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.service;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
 
-public interface PlatformEmailService {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+@Component
+public class TwoFactorUtils {
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    private static final String TWO_FACTOR_PROFILE_NAME = "twofactor";
+
+    private final Environment environment;
+
+    @Autowired
+    public TwoFactorUtils(Environment environment) {
+        this.environment = environment;
+    }
+
+
+    public boolean isTwoFactorAuthEnabled() {
+        for(final String profile : this.environment.getActiveProfiles()) {
+            if(TWO_FACTOR_PROFILE_NAME.equals(profile)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

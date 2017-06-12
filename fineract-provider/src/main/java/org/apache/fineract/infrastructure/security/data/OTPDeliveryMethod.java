@@ -16,14 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.data;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+public class OTPDeliveryMethod {
 
-public interface PlatformEmailService {
+    private final String name;
+    private final String target;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+    public OTPDeliveryMethod(String name, String target) {
+        this.name = name;
+        this.target = target;
+    }
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    public String getName() {
+        return name;
+    }
+
+    public String getTarget() {
+        return target;
+    }
 }

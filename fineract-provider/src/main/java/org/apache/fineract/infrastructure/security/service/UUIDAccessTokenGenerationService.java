@@ -16,14 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.service;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import java.util.UUID;
 
-public interface PlatformEmailService {
+import org.springframework.stereotype.Service;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+@Service
+public class UUIDAccessTokenGenerationService implements AccessTokenGenerationService {
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    @Override
+    public String generateRandomToken() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
+    }
 }

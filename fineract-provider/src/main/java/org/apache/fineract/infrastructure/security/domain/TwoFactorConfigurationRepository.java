@@ -16,14 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.domain;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import java.util.List;
 
-public interface PlatformEmailService {
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+@Profile("twofactor")
+public interface TwoFactorConfigurationRepository extends
+        JpaRepository<TwoFactorConfiguration, Long>, JpaSpecificationExecutor<TwoFactorConfiguration> {
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    TwoFactorConfiguration findByName(final String name);
+
+    List<TwoFactorConfiguration> findAll();
 }

@@ -16,14 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.service;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+public class RandomOTPGenerator {
 
-public interface PlatformEmailService {
+    private static final String allowedCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVQXYZ";
+    private final int tokenLength;
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+    public RandomOTPGenerator(int tokenLength) {
+        this.tokenLength = tokenLength;
+    }
 
-    void sendDefinedEmail(EmailDetail emailDetails);
+    public String generate() {
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < tokenLength; i++) {
+            builder.append(allowedCharacters.charAt((int) (Math.random() * (allowedCharacters.length()))));
+        }
+
+        return builder.toString();
+    }
 }

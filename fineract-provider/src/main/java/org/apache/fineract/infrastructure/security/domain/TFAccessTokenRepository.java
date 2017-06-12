@@ -16,14 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.infrastructure.core.service;
+package org.apache.fineract.infrastructure.security.domain;
 
-import org.apache.fineract.infrastructure.core.domain.EmailDetail;
+import org.apache.fineract.useradministration.domain.AppUser;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface PlatformEmailService {
+@Profile("twofactor")
+public interface TFAccessTokenRepository extends JpaRepository<TFAccessToken, Long>, JpaSpecificationExecutor<TFAccessToken> {
 
-    void sendToUserAccount(String organisationName,String contactName,
-                           String address, String username, String unencodedPassword);
+    TFAccessToken findByUserAndToken(AppUser user, String token);
 
-    void sendDefinedEmail(EmailDetail emailDetails);
 }
