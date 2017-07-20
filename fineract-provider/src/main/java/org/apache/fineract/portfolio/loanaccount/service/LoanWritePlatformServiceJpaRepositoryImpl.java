@@ -279,7 +279,9 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         checkForProductMixRestrictions(loan);
         
         LocalDate recalculateFrom = null;
-        loan.setActualDisbursementDate(actualDisbursementDate.toDate());
+        if(!loan.isMultiDisburmentLoan()){
+        	loan.setActualDisbursementDate(actualDisbursementDate.toDate());
+        }        
         ScheduleGeneratorDTO scheduleGeneratorDTO = this.loanUtilService.buildScheduleGeneratorDTO(loan, recalculateFrom);
 
         // validate actual disbursement date against meeting date
@@ -447,7 +449,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
      * 
      * @param loan
      *            the disbursed loan
-     * @return void
+     * 
      **/
     private void createStandingInstruction(Loan loan) {
 
@@ -2316,7 +2318,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
 
             final JsonElement parsedCommand = this.fromApiJsonHelper.parse(overdueInstallment.toString());
             final JsonCommand command = JsonCommand.from(overdueInstallment.toString(), parsedCommand, this.fromApiJsonHelper, null, null,
-                    null, null, null, loanId, null, null, null, null);
+                    null, null, null, loanId, null, null, null, null,null,null);
             LoanOverdueDTO overdueDTO = applyChargeToOverdueLoanInstallment(loanId, overdueInstallment.getChargeId(),
                     overdueInstallment.getPeriodNumber(), command, loan, existingTransactionIds, existingReversedTransactionIds);
             loan = overdueDTO.getLoan();
@@ -2419,7 +2421,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             while (!startDate.isAfter(DateUtils.getLocalDateOfTenant())) {
                 scheduleDates.put(frequencyNunber++, startDate.minusDays(diff.intValue()));
                 LocalDate scheduleDate = scheduledDateGenerator.getRepaymentPeriodDate(PeriodFrequencyType.fromInt(feeFrequency),
-                        chargeDefinition.feeInterval(), startDate, null, null);
+                        chargeDefinition.feeInterval(), startDate);
 
                 startDate = scheduleDate;
             }

@@ -22,8 +22,11 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.data.PaginationParameters;
@@ -122,6 +125,9 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
     private final CalendarReadPlatformService calendarReadPlatformService;
     private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd");
     private final PaymentTypeReadPlatformService paymentTypeReadPlatformService;
+    // allowed column names for sorting the query result
+    private final static Set<String> supportedOrderByValues = new HashSet<>(Arrays.asList("id", "accountNumbr",
+            "officeId", "officeName"));
 
     @Autowired
     public DepositAccountReadPlatformServiceImpl(final PlatformSecurityContext context, final RoutingDataSource dataSource,
@@ -178,7 +184,7 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
     public Page<DepositAccountData> retrieveAllPaged(final DepositAccountType depositAccountType,
             final PaginationParameters paginationParameters) {
 
-        this.paginationParametersDataValidator.validateParameterValues(paginationParameters, DepositsApiConstants.supportedOrderByValues,
+        this.paginationParametersDataValidator.validateParameterValues(paginationParameters, supportedOrderByValues,
                 depositAccountType.resourceName());
 
         final DepositAccountMapper depositAccountMapper = this.getDepositAccountMapper(depositAccountType);
@@ -738,9 +744,10 @@ public class DepositAccountReadPlatformServiceImpl implements DepositAccountRead
                 taxGroupData = TaxGroupData.lookup(taxGroupId, taxGroupName);
             }
 
+            final BigDecimal availableBalance = null;
             final SavingsAccountSummaryData summary = new SavingsAccountSummaryData(currency, totalDeposits, totalWithdrawals,
                     totalWithdrawalFees, totalAnnualFees, totalInterestEarned, totalInterestPosted, accountBalance, totalFeeCharge,
-                    totalPenaltyCharge, totalOverdraftInterestDerived, totalWithholdTax, null, null);
+                    totalPenaltyCharge, totalOverdraftInterestDerived, totalWithholdTax, null, null, availableBalance);
 
             return DepositAccountData.instance(id, accountNo, externalId, groupId, groupName, clientId, clientName, productId, productName,
                     fieldOfficerId, fieldOfficerName, status, timeline, currency, nominalAnnualInterestRate, interestCompoundingPeriodType,

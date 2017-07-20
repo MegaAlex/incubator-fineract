@@ -3196,7 +3196,7 @@ public class Loan extends AbstractPersistableCustom<Long> {
 
         boolean isAllChargesPaid = true;
         for (final LoanCharge loanCharge : this.charges) {
-            if (loanCharge.isActive() && !(loanCharge.isPaid() || loanCharge.isWaived())) {
+            if (loanCharge.isActive() && loanCharge.amount().compareTo(BigDecimal.ZERO) == 1 && !(loanCharge.isPaid() || loanCharge.isWaived())) {
                 isAllChargesPaid = false;
                 break;
             }
@@ -4744,6 +4744,9 @@ public class Loan extends AbstractPersistableCustom<Long> {
         if (loanCharge.isInstalmentFee()) {
             List<LoanRepaymentScheduleInstallment> installments = getRepaymentScheduleInstallments() ;
             for (final LoanRepaymentScheduleInstallment installment : installments) {
+            	if(installment.isRecalculatedInterestComponent()){
+            		continue;
+            	}
                 BigDecimal amount = BigDecimal.ZERO;
                 if (loanCharge.getChargeCalculation().isFlat()) {
                     amount = loanCharge.amountOrPercentage();
@@ -5573,23 +5576,26 @@ public class Loan extends AbstractPersistableCustom<Long> {
             if (loanDisbursementDetails.actualDisbursementDate() != null) {
                 actualDisbursementDate = new LocalDate(loanDisbursementDetails.actualDisbursementDate());
             }
-
+            BigDecimal waivedChargeAmount = null;
             disbursementData.add(new DisbursementData(loanDisbursementDetails.getId(), expectedDisbursementDate, actualDisbursementDate,
-                    loanDisbursementDetails.principal(), null, null));
+                    loanDisbursementDetails.principal(), null, null, waivedChargeAmount));
         }
 
         return disbursementData;
     }
 
     /**
+     * @param applicationCurrency
      * @param restCalendarInstance
      *            TODO
      * @param compoundingCalendarInstance
      *            TODO
+     * @param loanCalendar
      * @param floatingRateDTO
      *            TODO
-     * @param isChangeEmiIfRepaymentDateSameAsDisbursementDateEnabled 
-     * @param loanCalendarInstance
+     * @param isSkipRepaymentonmonthFirst
+     * @param numberofdays
+     * @param holidayDetailDTO
      *            Used for accessing the loan's calendar object
      * @return application terms of the Loan object
      **/
