@@ -19,7 +19,9 @@
 package org.apache.fineract.infrastructure.security.api;
 
 import java.util.List;
+import java.util.Map;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -30,6 +32,11 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.fineract.commands.domain.CommandWrapper;
+import org.apache.fineract.commands.service.CommandWrapperBuilder;
+import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
+import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
+import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
 import org.apache.fineract.infrastructure.core.serialization.ToApiJsonSerializer;
 import org.apache.fineract.infrastructure.security.data.AccessTokenData;
 import org.apache.fineract.infrastructure.security.data.OTPDeliveryMethod;
@@ -54,19 +61,29 @@ public class TwoFactorApiResource {
     private final ToApiJsonSerializer<OTPMetadata> otpRequestSerializer;
     private final ToApiJsonSerializer<OTPDeliveryMethod> otpDeliveryMethodSerializer;
     private final ToApiJsonSerializer<AccessTokenData> accessTokenSerializer;
+    private final DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer;
+
     private final PlatformSecurityContext context;
+    private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
     private final TwoFactorService twoFactorService;
+
 
 
     @Autowired
     public TwoFactorApiResource(ToApiJsonSerializer<OTPMetadata> otpRequestSerializer,
                                 ToApiJsonSerializer<OTPDeliveryMethod> otpDeliveryMethodSerializer,
                                 ToApiJsonSerializer<AccessTokenData> accessTokenSerializer,
-                                PlatformSecurityContext context, TwoFactorService twoFactorService) {
+                                DefaultToApiJsonSerializer<Map<String, Object>> toApiJsonSerializer,
+                                PlatformSecurityContext context,
+                                PortfolioCommandSourceWritePlatformService
+                                            commandsSourceWritePlatformService,
+                                TwoFactorService twoFactorService) {
         this.otpRequestSerializer = otpRequestSerializer;
         this.otpDeliveryMethodSerializer = otpDeliveryMethodSerializer;
         this.accessTokenSerializer = accessTokenSerializer;
+        this.toApiJsonSerializer = toApiJsonSerializer;
         this.context = context;
+        this.commandsSourceWritePlatformService = commandsSourceWritePlatformService;
         this.twoFactorService = twoFactorService;
     }
 
@@ -100,5 +117,16 @@ public class TwoFactorApiResource {
         TFAccessToken accessToken = twoFactorService.createAccessTokenFromOTP(user, token);
 
         return accessTokenSerializer.serialize(accessToken.toTokenData());
+    }
+
+    @Path("invalidate")
+    @DELETE
+    public String updateConfiguration(final String apiRequestBodyAsJson) {
+        final CommandWrapper commandRequest = new CommandWrapperBuilder()
+                .invaldiateTwoFactorAccessToken().withJson(apiRequestBodyAsJson).build();
+        final CommandProcessingResult result = this.commandsSourceWritePlatformService.
+                logCommandSource(commandRequest);
+
+        return this.toApiJsonSerializer.serialize(result);
     }
 }

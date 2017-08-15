@@ -20,6 +20,7 @@ package org.apache.fineract.infrastructure.security.service;
 
 import java.util.List;
 
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.security.data.OTPDeliveryMethod;
 import org.apache.fineract.infrastructure.security.data.OTPRequest;
 import org.apache.fineract.infrastructure.security.domain.TFAccessToken;
@@ -36,5 +37,7 @@ public interface TwoFactorService {
     void validateTwoFactorAccessToken(AppUser user, String token);
 
     TFAccessToken fetchAccessTokenForUser(AppUser user, String token);
+
+    TFAccessToken invalidateAccessToken(AppUser user, JsonCommand command);
 
 }

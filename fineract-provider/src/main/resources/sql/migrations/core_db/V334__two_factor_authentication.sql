@@ -57,6 +57,7 @@ INSERT INTO `twofactor_configuration` (`name`, `value`) VALUES
 
 
 INSERT INTO `m_permission` (`grouping`, `code`, `entity_name`, `action_name`, `can_maker_checker`) VALUES
+  ('authorisation', 'INVALIDATE_TWOFACTOR_ACCESSTOKEN', 'TWOFACTOR_ACCESSTOKEN', 'INVALIDATE', '0'),
   ('configuration', 'READ_TWOFACTOR_CONFIGURATION', 'TWOFACTOR_CONFIGURATION', 'READ', '0'),
   ('configuration', 'UPDATE_TWOFACTOR_CONFIGURATION', 'TWOFACTOR_CONFIGURATION', 'UPDATE', '0'),
   ('special', 'BYPASS_TWOFACTOR', NULL, NULL, '0');

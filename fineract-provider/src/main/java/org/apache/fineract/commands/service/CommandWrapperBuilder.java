@@ -3042,6 +3042,13 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder invaldiateTwoFactorAccessToken() {
+        this.actionName = "INVALIDATE";
+        this.entityName = "TWOFACTOR_ACCESSTOKEN";
+        this.href = "/twofactor/invalidate";
+        return this;
+    }
+
     public CommandWrapperBuilder updateTwoFactorConfiguration() {
         this.actionName = "UPDATE";
         this.entityName = "TWOFACTOR_CONFIGURATION";
