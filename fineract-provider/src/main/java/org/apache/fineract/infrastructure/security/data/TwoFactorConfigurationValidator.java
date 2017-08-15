@@ -78,7 +78,6 @@ public class TwoFactorConfigurationValidator {
             }
         }
 
-        // TODO: Verify SMS provider id
         for(String parameterName : TwoFactorConfigurationConstants.NUMBER_PARAMETERS) {
             if (this.fromJsonHelper.parameterExists(parameterName, element)) {
                 atLeastOneParameterPassedForUpdate = true;

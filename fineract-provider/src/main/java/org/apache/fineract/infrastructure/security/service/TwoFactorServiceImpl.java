@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.EmailDetail;
 import org.apache.fineract.infrastructure.core.service.PlatformEmailService;
 import org.apache.fineract.infrastructure.security.constants.TwoFactorConstants;
@@ -157,6 +158,22 @@ public class TwoFactorServiceImpl implements TwoFactorService {
         if(accessToken == null || !accessToken.isValid()) {
             throw new AccessTokenInvalidIException();
         }
+    }
+
+    @Override
+    public TFAccessToken invalidateAccessToken(final AppUser user, final JsonCommand command) {
+
+        final String token = command.stringValueOfParameterNamed("token");
+        final TFAccessToken accessToken = fetchAccessTokenForUser(user, token);
+
+        if(accessToken == null || !accessToken.isValid()) {
+            throw new AccessTokenInvalidIException();
+        }
+
+        accessToken.setEnabled(false);
+        tfAccessTokenRepository.save(accessToken);
+
+        return accessToken;
     }
 
     // TODO: Verify, add cache evict on token generate
