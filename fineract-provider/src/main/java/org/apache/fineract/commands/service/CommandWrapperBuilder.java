@@ -3042,7 +3042,7 @@ public class CommandWrapperBuilder {
         return this;
     }
 
-    public CommandWrapperBuilder invaldiateTwoFactorAccessToken() {
+    public CommandWrapperBuilder invalidateTwoFactorAccessToken() {
         this.actionName = "INVALIDATE";
         this.entityName = "TWOFACTOR_ACCESSTOKEN";
         this.href = "/twofactor/invalidate";

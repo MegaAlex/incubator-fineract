@@ -123,7 +123,7 @@ public class TwoFactorApiResource {
     @DELETE
     public String updateConfiguration(final String apiRequestBodyAsJson) {
         final CommandWrapper commandRequest = new CommandWrapperBuilder()
-                .invaldiateTwoFactorAccessToken().withJson(apiRequestBodyAsJson).build();
+                .invalidateTwoFactorAccessToken().withJson(apiRequestBodyAsJson).build();
         final CommandProcessingResult result = this.commandsSourceWritePlatformService.
                 logCommandSource(commandRequest);
 

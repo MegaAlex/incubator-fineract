@@ -26,4 +26,5 @@ public interface PlatformEmailService {
                            String address, String username, String unencodedPassword);
 
     void sendDefinedEmail(EmailDetail emailDetails);
+
 }
