@@ -21,7 +21,6 @@ package org.apache.fineract.infrastructure.security.api;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -43,8 +42,8 @@ import org.apache.fineract.infrastructure.security.data.OTPDeliveryMethod;
 import org.apache.fineract.infrastructure.security.data.OTPMetadata;
 import org.apache.fineract.infrastructure.security.data.OTPRequest;
 import org.apache.fineract.infrastructure.security.domain.TFAccessToken;
-import org.apache.fineract.infrastructure.security.service.TwoFactorService;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
+import org.apache.fineract.infrastructure.security.service.TwoFactorService;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -120,7 +119,8 @@ public class TwoFactorApiResource {
     }
 
     @Path("invalidate")
-    @DELETE
+    @POST
+    @Produces({ MediaType.APPLICATION_JSON })
     public String updateConfiguration(final String apiRequestBodyAsJson) {
         final CommandWrapper commandRequest = new CommandWrapperBuilder()
                 .invalidateTwoFactorAccessToken().withJson(apiRequestBodyAsJson).build();
