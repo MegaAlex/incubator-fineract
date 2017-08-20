@@ -40,6 +40,8 @@ import org.apache.fineract.infrastructure.sms.domain.SmsMessageRepository;
 import org.apache.fineract.infrastructure.sms.scheduler.SmsMessageScheduledJobService;
 import org.apache.fineract.useradministration.domain.AppUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -130,6 +132,9 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     }
 
     @Override
+    @CachePut(value = "userTFAccessToken",
+            key = "T(org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil)" +
+                    ".getTenant().getTenantIdentifier().concat(#user.username).concat(#result.token + 'tok')")
     public TFAccessToken createAccessTokenFromOTP(final AppUser user, final String otpToken) {
 
         OTPRequest otpRequest = otpRequestRepository.getOTPRequestForUser(user);
@@ -161,6 +166,9 @@ public class TwoFactorServiceImpl implements TwoFactorService {
     }
 
     @Override
+    @CacheEvict(value = "userTFAccessToken",
+            key = "T(org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil)" +
+                    ".getTenant().getTenantIdentifier().concat(#user.username).concat(#result.token + 'tok')")
     public TFAccessToken invalidateAccessToken(final AppUser user, final JsonCommand command) {
 
         final String token = command.stringValueOfParameterNamed("token");
@@ -176,7 +184,7 @@ public class TwoFactorServiceImpl implements TwoFactorService {
         return accessToken;
     }
 
-    // TODO: Verify, add cache evict on token generate
+    @Override
     @Cacheable(value = "userTFAccessToken",
             key = "T(org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil)" +
                     ".getTenant().getTenantIdentifier().concat(#user.username).concat(#token + 'tok')")

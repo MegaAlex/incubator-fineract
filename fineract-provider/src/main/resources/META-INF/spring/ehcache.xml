@@ -50,4 +50,6 @@
 		overflowToDisk="false" />
 	<cache name="userTFAccessToken" maxEntriesLocalHeap="10000"
 		   overflowToDisk="false" timeToIdleSeconds="7200" />
+	<cache name="tfConfig" maxEntriesLocalHeap="10000" eternal="true"
+		   overflowToDisk="false" />
 </ehcache>
