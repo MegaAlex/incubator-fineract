@@ -191,13 +191,9 @@ public class TwoFactorConfigurationServiceImpl implements TwoFactorConfiguration
     @Override
     @Cacheable(value = "tfConfig", key = "T(org.apache.fineract.infrastructure.core.service.ThreadLocalContextUtil).getTenant().getTenantIdentifier()+'|otpLength'")
     public Integer getOTPTokenLength() {
-        Integer defaultValue = 5;
-        Integer value = getIntegerConfig(TwoFactorConfigurationConstants.OTP_TOKEN_LENGTH,
+        Integer defaultValue = 1;
+        return getIntegerConfig(TwoFactorConfigurationConstants.OTP_TOKEN_LENGTH,
                 defaultValue);
-        if(value < 1) {
-            return defaultValue;
-        }
-        return value;
     }
 
     @Override
