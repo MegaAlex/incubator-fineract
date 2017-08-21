@@ -126,9 +126,9 @@ public class TwoFactorServiceImpl implements TwoFactorService {
             emailService.sendDefinedEmail(emailData);
             otpRequestRepository.addOTPRequest(user, request);
             return request;
-        } else {
-            throw new OTPDeliveryMethodInvalidException();
         }
+
+        throw new OTPDeliveryMethodInvalidException();
     }
 
     @Override
