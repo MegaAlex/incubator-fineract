@@ -2629,9 +2629,9 @@
 								<td></td>
 							</tr>
 							<tr>
-                                <td><a href="#twofactor">Two-Factor Authentication</a>a</td>
+                                <td><a href="#twofactor">Two-Factor Authentication</a></td>
 								<td>twofactor</td>
-								<td><a href="#twofacor_request">Request OTP</a></td>
+								<td><a href="#twofactor_request">Request OTP</a></td>
 								<td><a href="#twofactor_deliverymethods">List OTP delivery methods</a></td>
 								<td></td>
 								<td></td>
@@ -2639,11 +2639,19 @@
 							<tr>
 								<td></td>
 								<td>twofactor/validate</td>
-								<td><a href="#twofacor_validate">Validate OTP</a></td>
+								<td><a href="#twofactor_validate">Validate OTP</a></td>
 								<td></td>
 								<td></td>
 								<td></td>
 							</tr>
+                            <tr>
+                                <td></td>
+                                <td>twofactor/invalidate</td>
+                                <td><a href="#twofactor_invalidate">Invalidate Access Token</a></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
 							<tr>
 								<td><a href="#users">User</a></td>
 								<td>users</td>
@@ -4105,10 +4113,11 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 						<ol class="normalli">
 							<li class="normalli">User authticates via BasicAuth / oAauth</li>
 							<li>Client requests a list of supported OTP delivery methods for the authenticated user(<a href="#twofactor_deliverymethods">Get Delivery Methods</a>)</li>
-							<li>User selects an OTP delivery method and client sends a request for OTP(<a href="#twofacor_request">Request OTP</a>)</li>
+							<li>User selects an OTP delivery method and client sends a request for OTP(<a href="#twofactor_request">Request OTP</a>)</li>
 							<li>User receives an OTP and the client sends it for verification(<a href="#twofactor_validate">Validate OTP</a>)</li>
 							<li>If the OTP is valid, an access token is returned</li>
 							<li>The access token is sent in following requestes to the server as a header <i>Fineract-Platform-TFA-Token</i></li>
+                            <li>On session end, the access token should be invalidated<a href="#twofactor_invalidate">Invalidate Access Token</a>)</li>
 						</ol>
 					</p>
 					<p>
@@ -4126,7 +4135,7 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 				<div class="method-description">
 					<h4>Get Delivery Methods</h4>
 					<p>Returns a list of possible OTP delivery methods for the current user</p>
-					<p>Requres first-factor authenticated user.</p>
+					<p>Requires first-factor authenticated user.</p>
 				</div>
 				<div class="method-example">
 					<code class="method-declaration">GET https://DomainName/api/v1/twofactor</code>
@@ -4144,12 +4153,12 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 				</div>
 			</div>
 
-			<a id="twofacor_request" name="twofactor_request" class="old-syle-anchor">&nbsp;</a>
+			<a id="twofactor_request" name="twofactor_request" class="old-syle-anchor">&nbsp;</a>
 			<div class="method-section">
 				<div class="method-description">
 					<h4>Request OTP</h4>
 					<p>Requests an OTP.</p>
-					<p>Requres first-factor authenticated user.</p>
+					<p>Requires first-factor authenticated user.</p>
 					<h5>Arguments</h5>
 					<dl class="argument-list">
 						<dt>deliveryMethod</dt>
@@ -4177,13 +4186,13 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 				</div>
 			</div>
 
-			<a id="twofacor_validate" name="twofacor_validate" class="old-syle-anchor">&nbsp;</a>
+			<a id="twofactor_validate" name="twofactor_validate" class="old-syle-anchor">&nbsp;</a>
 			<div class="method-section">
 				<div class="method-description">
 					<h4>Validate OTP</h4>
 					<p>Validates an OTP. If the OTP is valid, an access token is created.</p>
 					<p>The returned access token is later sent as a header <i>Fineract-Platform-TFA-Token</i>.</p>
-					<p>Requres first-factor authenticated user.</p>
+					<p>Requires first-factor authenticated user.</p>
 					<h5>Arguments</h5>
 					<dl class="argument-list">
 						<dt>token</dt>
@@ -4193,7 +4202,7 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 					</dl>
 				</div>
 				<div class="method-example">
-					<code class="method-declaration">POST https://DomainName/api/v1/twofactor?token=YYYYY</code>
+					<code class="method-declaration">POST https://DomainName/api/v1/twofactor/validate?token=YYYYY</code>
 					<code class="method-response">
 {
     "token": "cb0bb6e33fc540709d50a16eb2e555f9",
@@ -4202,6 +4211,27 @@ function executeAjaxRequest(url, verbType, jsonData, authKey, successFunction, e
 }</code>
 				</div>
 			</div>
+
+            <a id="twofactor_invalidate" name="twofactor_invalidate" class="old-syle-anchor">&nbsp;</a>
+            <div class="method-section">
+                <div class="method-description">
+                    <h4>Invalidate Access Token</h4>
+                    <p>Invalidates an access token.</p>
+                    <p>Two factor access tokens should be invalidated on logout.</p>
+                    <p>Requires fully authenticated user.</p>
+                </div>
+                <div class="method-example">
+                    <code class="method-declaration">POST https://DomainName/api/v1/twofactor/invalidate</code>
+                    <code class="method-request">
+{
+    "token": "cb0bb6e33fc540709d50a16eb2e555f9"
+}</code>
+                    <code class="method-response">
+{
+    "resourceIdentifier": "cb0bb6e33fc540709d50a16eb2e555f9"
+}</code>
+                </div>
+            </div>
 
 			<a id="batch_api" name="batch_api" class="old-syle-anchor">&nbsp;</a>
 			<div class="method-section">
