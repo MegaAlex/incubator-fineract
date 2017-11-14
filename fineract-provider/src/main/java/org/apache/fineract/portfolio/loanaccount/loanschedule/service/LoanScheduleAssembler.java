@@ -515,7 +515,8 @@ public class LoanScheduleAssembler {
                             && StringUtils.isNotBlank((jsonObject.get(LoanApiConstants.disbursementPrincipalParameterName).getAsString()))) {
                         principal = jsonObject.getAsJsonPrimitive(LoanApiConstants.disbursementPrincipalParameterName).getAsBigDecimal();
                     }
-                    disbursementDatas.add(new DisbursementData(null, expectedDisbursementDate, null, principal, null, null));
+                    BigDecimal waivedChargeAmount = null;
+                    disbursementDatas.add(new DisbursementData(null, expectedDisbursementDate, null, principal, null, null, waivedChargeAmount));
                     i++;
                 } while (i < disbursementDataArray.size());
             }
@@ -536,7 +537,7 @@ public class LoanScheduleAssembler {
 
     public void validateDisbursementDateWithMeetingDates(final LocalDate expectedDisbursementDate, final Calendar calendar, Boolean isSkipRepaymentOnFirstMonth, Integer numberOfDays) {
         // disbursement date should fall on a meeting date
-        if (!calendar.isValidRecurringDate(expectedDisbursementDate, isSkipRepaymentOnFirstMonth, numberOfDays)) {
+        if (calendar != null && !calendar.isValidRecurringDate(expectedDisbursementDate, isSkipRepaymentOnFirstMonth, numberOfDays)) {
             final String errorMessage = "Expected disbursement date '" + expectedDisbursementDate + "' do not fall on a meeting date";
             throw new LoanApplicationDateException("disbursement.date.do.not.match.meeting.date", errorMessage, expectedDisbursementDate);
         }

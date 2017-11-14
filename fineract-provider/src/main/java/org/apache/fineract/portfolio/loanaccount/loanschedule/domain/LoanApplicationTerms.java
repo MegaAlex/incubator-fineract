@@ -183,7 +183,7 @@ public final class LoanApplicationTerms {
 
     private Money adjustPrincipalForFlatLoans;
 
-    private final LocalDate seedDate;
+    private LocalDate seedDate;
 
     private final CalendarHistoryDataWrapper calendarHistoryDataWrapper;
 
@@ -600,7 +600,7 @@ public final class LoanApplicationTerms {
 
         switch (this.interestMethod) {
             case FLAT:
-                principalForInstallment = calculateTotalPrincipalPerPeriodWithoutGrace(mc, periodNumber);
+                principalForInstallment = calculateTotalPrincipalPerPeriodWithoutGrace(mc, periodNumber, interestForThisInstallment);
             break;
             case DECLINING_BALANCE:
                 switch (this.amortizationMethod) {
@@ -878,19 +878,26 @@ public final class LoanApplicationTerms {
         return interestPerInstallment;
     }
 
-    private Money calculateTotalPrincipalPerPeriodWithoutGrace(final MathContext mc, final int periodNumber) {
+    private Money calculateTotalPrincipalPerPeriodWithoutGrace(final MathContext mc, final int periodNumber, Money interestForThisInstallment) {
         final int totalRepaymentsWithCapitalPayment = calculateNumberOfRepaymentsWithPrincipalPayment();
-        Money principalPerPeriod = this.principal.minus(totalPrincipalAccounted).dividedBy(totalRepaymentsWithCapitalPayment, mc.getRoundingMode()).plus(
-                this.adjustPrincipalForFlatLoans);
-        if (isPrincipalGraceApplicableForThisPeriod(periodNumber)) {
-            principalPerPeriod = principalPerPeriod.zero();
-        }
-        if (!isPrincipalGraceApplicableForThisPeriod(periodNumber) && currentPeriodFixedPrincipalAmount != null) {
-            this.adjustPrincipalForFlatLoans = this.adjustPrincipalForFlatLoans.plus(principalPerPeriod.minus(
-                    currentPeriodFixedPrincipalAmount).dividedBy(this.actualNumberOfRepayments - periodNumber, mc.getRoundingMode()));
-            principalPerPeriod = this.principal.zero().plus(currentPeriodFixedPrincipalAmount);
+        Money principalPerPeriod = null;
+        if (getFixedEmiAmount() == null) {
+        	principalPerPeriod = this.principal.minus(totalPrincipalAccounted).dividedBy(totalRepaymentsWithCapitalPayment, mc.getRoundingMode()).plus(
+                    this.adjustPrincipalForFlatLoans);
+        	if (isPrincipalGraceApplicableForThisPeriod(periodNumber)) {
+                principalPerPeriod = principalPerPeriod.zero();
+            }
+            if (!isPrincipalGraceApplicableForThisPeriod(periodNumber) && currentPeriodFixedPrincipalAmount != null) {
+                this.adjustPrincipalForFlatLoans = this.adjustPrincipalForFlatLoans.plus(principalPerPeriod.minus(
+                        currentPeriodFixedPrincipalAmount).dividedBy(this.actualNumberOfRepayments - periodNumber, mc.getRoundingMode()));
+                principalPerPeriod = this.principal.zero().plus(currentPeriodFixedPrincipalAmount);
 
+            }
+        }else{
+        	principalPerPeriod =  Money.of(this.getCurrency(), getFixedEmiAmount()).minus(interestForThisInstallment);
+        	return principalPerPeriod;
         }
+        
         return principalPerPeriod;
     }
 
@@ -1105,6 +1112,12 @@ public final class LoanApplicationTerms {
             }
         }
         Integer periodsRemaining = totalNumberOfRepaymentPeriods - periodsElapsed - principalFeePeriods;
+        /**
+         * if grace period available then need to be subtracted
+         */
+        if(this.interestChargingGrace != null){
+        	periodsRemaining = periodsRemaining - this.interestChargingGrace;
+        }
         return periodsRemaining;
     }
     
@@ -1728,6 +1741,10 @@ public final class LoanApplicationTerms {
     
     public void updateTotalInterestAccounted(Money totalInterestAccounted){
         this.totalInterestAccounted = totalInterestAccounted;
+    }
+
+    public void setSeedDate(LocalDate seedDate) {
+        this.seedDate = seedDate;
     }
     
 }

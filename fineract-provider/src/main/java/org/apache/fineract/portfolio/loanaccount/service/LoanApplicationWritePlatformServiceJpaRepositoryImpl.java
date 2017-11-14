@@ -824,7 +824,7 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                     final CalendarInstance calendarInstance = ciList.get(0);
                     final boolean isCalendarAssociatedWithEntity = this.calendarReadPlatformService.isCalendarAssociatedWithEntity(calendarInstance
                             .getEntityId(), calendarInstance.getCalendar().getId(), CalendarEntityType.LOANS.getValue().longValue());
-                    if (isCalendarAssociatedWithEntity) {
+                    if (isCalendarAssociatedWithEntity && calendarId == null) {
                         this.calendarRepository.delete(calendarInstance.getCalendar());
                     }
                     if (calendarInstance.getCalendar().getId() != calendar.getId()) {
@@ -1086,7 +1086,11 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
         if (loan.isSyncDisbursementWithMeeting() && (loan.isGroupLoan() || loan.isJLGLoan())) {
             final CalendarInstance calendarInstance = this.calendarInstanceRepository.findCalendarInstaneByEntityId(loan.getId(),
                     CalendarEntityType.LOANS.getValue());
-            final Calendar calendar = calendarInstance.getCalendar();
+            Calendar calendar = null;
+            if (calendarInstance != null) {
+                calendar = calendarInstance.getCalendar();
+            }
+           // final Calendar calendar = calendarInstance.getCalendar();
             boolean isSkipRepaymentOnFirstMonthEnabled = this.configurationDomainService.isSkippingMeetingOnFirstDayOfMonthEnabled();
             if (isSkipRepaymentOnFirstMonthEnabled) {
                 isSkipRepaymentOnFirstMonth = this.loanUtilService.isLoanRepaymentsSyncWithMeeting(loan.group(), calendar);

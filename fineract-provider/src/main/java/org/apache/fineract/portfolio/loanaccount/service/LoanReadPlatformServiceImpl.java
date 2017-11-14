@@ -44,6 +44,8 @@ import org.apache.fineract.infrastructure.core.service.PaginationHelper;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
 import org.apache.fineract.infrastructure.core.service.SearchParameters;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
+import org.apache.fineract.infrastructure.security.utils.ColumnValidator;
+import org.apache.fineract.infrastructure.security.utils.SQLInjectionValidator;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.organisation.monetary.domain.ApplicationCurrency;
 import org.apache.fineract.organisation.monetary.domain.ApplicationCurrencyRepositoryWrapper;
@@ -153,6 +155,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
     private final LoanUtilService loanUtilService;
     private final ConfigurationDomainService configurationDomainService;
     private final AccountDetailsReadPlatformService accountDetailsReadPlatformService;
+    private final ColumnValidator columnValidator;
 
     @Autowired
     public LoanReadPlatformServiceImpl(final PlatformSecurityContext context, final ApplicationCurrencyRepositoryWrapper applicationCurrencyRepository,
@@ -166,7 +169,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
             final FloatingRatesReadPlatformService floatingRatesReadPlatformService, final LoanUtilService loanUtilService,
             final ConfigurationDomainService configurationDomainService,
             final AccountDetailsReadPlatformService accountDetailsReadPlatformService,
-            final LoanRepositoryWrapper loanRepositoryWrapper) {
+            final LoanRepositoryWrapper loanRepositoryWrapper, final ColumnValidator columnValidator) {
         this.context = context;
         this.loanRepositoryWrapper = loanRepositoryWrapper ;
         this.applicationCurrencyRepository = applicationCurrencyRepository;
@@ -187,6 +190,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         this.loanUtilService = loanUtilService;
         this.configurationDomainService = configurationDomainService;
         this.accountDetailsReadPlatformService = accountDetailsReadPlatformService;
+        this.columnValidator = columnValidator;
     }
 
     @Override
@@ -212,6 +216,22 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
             throw new LoanNotFoundException(loanId);
         }
     }
+    
+    @Override
+    public LoanAccountData retrieveLoanByLoanAccount(String loanAccountNumber)
+    {
+
+       
+            //final AppUser currentUser = this.context.authenticatedUser();
+    		this.context.authenticatedUser();
+            final LoanMapper rm = new LoanMapper();
+
+            String sql="select "+rm.loanSchema()+" where l.account_no=?"; 
+            
+
+            return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { loanAccountNumber });
+       
+    }
 
     @Override
     public LoanScheduleData retrieveRepaymentSchedule(final Long loanId,
@@ -230,6 +250,8 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
             throw new LoanNotFoundException(loanId);
         }
     }
+    
+    
 
     @Override
     public Collection<LoanTransactionData> retrieveLoanTransactions(final Long loanId) {
@@ -281,7 +303,9 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
 
         String sqlQueryCriteria = searchParameters.getSqlSearch();
         if (StringUtils.isNotBlank(sqlQueryCriteria)) {
+        	SQLInjectionValidator.validateSQLInput(sqlQueryCriteria);
             sqlQueryCriteria = sqlQueryCriteria.replaceAll("accountNo", "l.account_no");
+            this.columnValidator.validateSqlInjection(sqlBuilder.toString(), sqlQueryCriteria);
             sqlBuilder.append(" and (").append(sqlQueryCriteria).append(")");
         }
 
@@ -416,13 +440,33 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
         final Collection<PaymentTypeData> paymentOptions = this.paymentTypeReadPlatformService.retrieveAllPaymentTypes();
         final BigDecimal outstandingLoanBalance = loanRepaymentScheduleInstallment.getPrincipalOutstanding(currency).getAmount();
         final BigDecimal unrecognizedIncomePortion = null;
+        BigDecimal adjustedChargeAmount = adjustPrepayInstallmentCharge(loan, onDate);
         return new LoanTransactionData(null, null, null, transactionType, null, currencyData, earliestUnpaidInstallmentDate,
-                loanRepaymentScheduleInstallment.getTotalOutstanding(currency).getAmount(), loanRepaymentScheduleInstallment
+                loanRepaymentScheduleInstallment.getTotalOutstanding(currency).getAmount().subtract(adjustedChargeAmount), loanRepaymentScheduleInstallment
                         .getPrincipalOutstanding(currency).getAmount(), loanRepaymentScheduleInstallment.getInterestOutstanding(currency)
-                        .getAmount(), loanRepaymentScheduleInstallment.getFeeChargesOutstanding(currency).getAmount(),
+                        .getAmount(), loanRepaymentScheduleInstallment.getFeeChargesOutstanding(currency).getAmount().subtract(adjustedChargeAmount),
                 loanRepaymentScheduleInstallment.getPenaltyChargesOutstanding(currency).getAmount(), null, unrecognizedIncomePortion,
                 paymentOptions, null, null, null, outstandingLoanBalance, false);
     }
+
+	private BigDecimal adjustPrepayInstallmentCharge(Loan loan, final LocalDate onDate) {
+		BigDecimal chargeAmount = BigDecimal.ZERO;
+		/*for(LoanCharge loanCharge: loan.charges()){
+        	if(loanCharge.isInstalmentFee() && loanCharge.getCharge().getChargeCalculation()==ChargeCalculationType.FLAT.getValue()){        		
+        		for (LoanRepaymentScheduleInstallment installment : loan.getRepaymentScheduleInstallments()) {
+        			if(onDate.isBefore(installment.getDueDate())){
+        				LoanInstallmentCharge loanInstallmentCharge =  loanCharge.getInstallmentLoanCharge(installment.getInstallmentNumber());
+        				if(loanInstallmentCharge != null){
+        					chargeAmount = chargeAmount.add(loanInstallmentCharge.getAmountOutstanding());
+        				}
+        				
+        				break;
+        			}
+				}
+        	}
+        }*/
+		return chargeAmount;
+	}
 
     @Override
     public LoanTransactionData retrieveWaiveInterestDetails(final Long loanId) {
@@ -1009,7 +1053,10 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
 
         @Override
         public LoanScheduleData extractData(final ResultSet rs) throws SQLException, DataAccessException {
-
+            BigDecimal waivedChargeAmount = BigDecimal.ZERO;
+            for (DisbursementData disbursementDetail : disbursementData) {
+                waivedChargeAmount = waivedChargeAmount.add(disbursementDetail.getWaivedChargeAmount());
+            }
             final LoanSchedulePeriodData disbursementPeriod = LoanSchedulePeriodData.disbursementOnlyPeriod(
                     this.disbursement.disbursementDate(), this.disbursement.amount(), this.totalFeeChargesDueAtDisbursement,
                     this.disbursement.isDisbursed());
@@ -1048,9 +1095,9 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
             Money totalOutstanding = Money.zero(monCurrency);
 
             // update totals with details of fees charged during disbursement
-            totalFeeChargesCharged = totalFeeChargesCharged.plus(disbursementPeriod.feeChargesDue());
-            totalRepaymentExpected = totalRepaymentExpected.plus(disbursementPeriod.feeChargesDue());
-            totalRepayment = totalRepayment.plus(disbursementPeriod.feeChargesPaid());
+            totalFeeChargesCharged = totalFeeChargesCharged.plus(disbursementPeriod.feeChargesDue().subtract(waivedChargeAmount));
+            totalRepaymentExpected = totalRepaymentExpected.plus(disbursementPeriod.feeChargesDue()).minus(waivedChargeAmount);
+            totalRepayment = totalRepayment.plus(disbursementPeriod.feeChargesPaid()).minus(waivedChargeAmount);
             totalOutstanding = totalOutstanding.plus(disbursementPeriod.feeChargesDue()).minus(disbursementPeriod.feeChargesPaid());
 
             Integer loanTermInDays = Integer.valueOf(0);
@@ -1074,7 +1121,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
                                             disbursementChargeAmount, data.isDisbursed());
                                 } else {
                                     periodData = LoanSchedulePeriodData.disbursementOnlyPeriod(data.disbursementDate(), data.amount(),
-                                            disbursementChargeAmount.add(data.getChargeAmount()), data.isDisbursed());
+                                            disbursementChargeAmount.add(data.getChargeAmount()).subtract(waivedChargeAmount), data.isDisbursed());
                                 }
                                 if (periodData != null) {
                                     periods.add(periodData);
@@ -1496,7 +1543,7 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
             final BigDecimal waivedAmount = rs.getBigDecimal("waivedAmount");
             if (chargeAmount != null && waivedAmount != null) chargeAmount = chargeAmount.subtract(waivedAmount);
             final DisbursementData disbursementData = new DisbursementData(id, expectedDisbursementdate, actualDisbursementdate, principal,
-                    loanChargeId, chargeAmount);
+                    loanChargeId, chargeAmount, waivedAmount);
             return disbursementData;
         }
 
